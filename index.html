@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VibeClip</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f0f0;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:20px 0;}
+input,textarea,button{font-family:inherit;}
+input,textarea{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;background:#fff;color:#111;outline:none;}
+input:focus,textarea:focus{border-color:#E24B4A;}
+
+#app{width:390px;min-height:680px;border:1px solid #ddd;border-radius:20px;overflow:hidden;background:#fff;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.12);}
+.scr{display:none;flex-direction:column;flex:1;}
+.scr.on{display:flex;}
+
+/* TUTORIAL */
+#tut-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;}
+.tut-box{background:#fff;border-radius:16px;padding:1.5rem;width:320px;text-align:center;}
+.tut-step{display:none;}
+.tut-step.on{display:block;}
+.tut-ic{font-size:44px;margin-bottom:12px;}
+.tut-ttl{font-size:18px;font-weight:700;margin-bottom:6px;color:#111;}
+.tut-txt{font-size:13px;color:#666;line-height:1.5;margin-bottom:16px;}
+.tut-dots{display:flex;justify-content:center;gap:6px;margin-bottom:16px;}
+.tdot{width:7px;height:7px;border-radius:50%;background:#ddd;}
+.tdot.on{background:#E24B4A;}
+.tut-btns{display:flex;gap:8px;margin-bottom:8px;}
+.btn-r{flex:1;padding:11px;background:#E24B4A;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;}
+.btn-r:hover{opacity:0.9;}
+.btn-g{flex:1;padding:11px;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:14px;color:#666;cursor:pointer;}
+.btn-g:hover{background:#f5f5f5;}
+.btn-skip{width:100%;background:transparent;border:none;color:#aaa;font-size:12px;cursor:pointer;padding:6px;}
+
+/* AUTH */
+.auth-wrap{padding:2rem 1.5rem;}
+.logo{font-size:28px;font-weight:700;color:#E24B4A;text-align:center;letter-spacing:-1px;}
+.logo-s{font-size:12px;color:#888;text-align:center;margin-top:2px;margin-bottom:1.5rem;}
+.atabs{display:flex;border:1px solid #eee;border-radius:8px;overflow:hidden;margin-bottom:1.25rem;}
+.atab{flex:1;padding:9px;font-size:14px;background:transparent;border:none;cursor:pointer;color:#888;}
+.atab.on{background:#f5f5f5;color:#111;font-weight:600;}
+.aform{display:flex;flex-direction:column;gap:10px;}
+.flbl{font-size:12px;color:#666;margin-bottom:2px;display:block;}
+.fw{display:flex;flex-direction:column;gap:2px;}
+.aerr{font-size:12px;color:#E24B4A;text-align:center;min-height:16px;}
+.asep{text-align:center;font-size:12px;color:#aaa;margin:4px 0;}
+.btn-full{width:100%;padding:11px;background:#E24B4A;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;}
+.btn-full:hover{opacity:0.9;}
+.btn-ghost{width:100%;padding:10px;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:14px;color:#666;cursor:pointer;}
+.btn-ghost:hover{background:#f5f5f5;}
+.pw-hint{font-size:11px;color:#888;margin-top:2px;}
+
+/* VERIFY */
+#scr-verify{padding:2rem 1.5rem;align-items:center;text-align:center;}
+.fake-mail{background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:1rem;margin-bottom:1rem;text-align:left;}
+.fm-from{font-size:11px;color:#888;margin-bottom:3px;}
+.fm-subj{font-size:13px;font-weight:600;color:#111;margin-bottom:6px;}
+.fm-code{font-size:24px;font-weight:700;color:#E24B4A;letter-spacing:8px;}
+.code-row{display:flex;gap:8px;justify-content:center;margin-bottom:10px;}
+.code-inp{width:44px;height:52px;border:1px solid #ddd;border-radius:8px;text-align:center;font-size:22px;font-weight:700;background:#fff;color:#111;}
+.code-inp:focus{border-color:#E24B4A;outline:none;}
+.verr{font-size:12px;color:#E24B4A;text-align:center;min-height:16px;margin-bottom:6px;}
+.resend-btn{background:transparent;border:none;color:#E24B4A;font-size:13px;cursor:pointer;display:block;margin:0 auto 10px;}
+
+/* BOTTOM NAV */
+#bnav{background:#fff;border-top:1px solid #eee;padding:6px 0 10px;display:none;}
+#bnav.on{display:flex;}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:transparent;border:none;cursor:pointer;padding:4px 0;}
+.bn-ic{width:22px;height:22px;display:flex;align-items:center;justify-content:center;position:relative;}
+.bn-ic svg{width:22px;height:22px;fill:none;stroke:#888;stroke-width:1.8;}
+.bn.on .bn-ic svg{stroke:#E24B4A;}
+.bn-lbl{font-size:10px;color:#888;}
+.bn.on .bn-lbl{color:#E24B4A;font-weight:600;}
+.ndot{position:absolute;top:-2px;right:-3px;width:8px;height:8px;background:#E24B4A;border-radius:50%;border:1.5px solid #fff;display:none;}
+.ndot.on{display:block;}
+.plus-ic{width:34px;height:34px;background:#E24B4A;border-radius:9px;display:flex;align-items:center;justify-content:center;}
+.plus-ic svg{stroke:#fff !important;}
+
+/* FEED */
+#scr-feed{background:#000;position:relative;}
+.feed-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;position:absolute;top:0;left:0;right:0;z-index:10;pointer-events:none;}
+.feed-bar>*{pointer-events:all;}
+.feed-logo{font-size:17px;font-weight:700;color:#fff;}
+.ftabs{display:flex;gap:14px;}
+.ftab{font-size:13px;color:rgba(255,255,255,0.55);background:transparent;border:none;cursor:pointer;}
+.ftab.on{color:#fff;font-weight:600;text-decoration:underline;text-underline-offset:4px;}
+.fscroll{flex:1;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;}
+.vcard{height:580px;scroll-snap-align:start;position:relative;background:#111;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;}
+
+/* VIDEO PLAYER */
+.vmedia{position:absolute;inset:0;overflow:hidden;cursor:pointer;}
+.vmedia video{width:100%;height:100%;object-fit:cover;display:block;}
+.vmedia img{width:100%;height:100%;object-fit:cover;display:block;}
+.play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 0.2s;}
+.play-overlay.show{opacity:1;}
+.play-ic{width:60px;height:60px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;}
+.play-ic svg{width:28px;height:28px;fill:#fff;stroke:none;}
+.speed-badge{position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);color:#fff;font-size:13px;font-weight:700;padding:4px 10px;border-radius:20px;pointer-events:none;display:none;}
+.speed-badge.show{display:block;}
+
+.vgrad{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,transparent 52%);pointer-events:none;}
+.vinfo{position:relative;z-index:2;padding:0 52px 14px 12px;pointer-events:none;}
+.vur{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.vav{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.vuser{font-size:13px;font-weight:600;color:#fff;}
+.vfbtn{font-size:11px;background:transparent;border:1px solid rgba(255,255,255,0.6);border-radius:10px;color:#fff;cursor:pointer;padding:2px 7px;pointer-events:all;}
+.vfbtn.on{background:rgba(255,255,255,0.2);border-color:transparent;}
+.vdesc{font-size:13px;color:rgba(255,255,255,0.88);line-height:1.4;}
+.vtags{margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;}
+.vtag{font-size:12px;color:#69C0FF;cursor:pointer;background:transparent;border:none;pointer-events:all;}
+.vact{position:absolute;right:10px;bottom:14px;z-index:3;display:flex;flex-direction:column;gap:18px;align-items:center;}
+.vbtn{display:flex;flex-direction:column;align-items:center;gap:2px;background:transparent;border:none;cursor:pointer;color:#fff;font-size:10px;}
+.vic{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;}
+.vic svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:1.8;}
+.vbtn.liked .vic{background:rgba(226,75,74,0.45);}
+.vbtn.liked .vic svg{fill:#E24B4A;stroke:#E24B4A;}
+.empty-f{height:580px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:rgba(255,255,255,0.4);}
+
+/* SEARCH */
+#scr-search{background:#fff;}
+.ph{padding:12px 14px;border-bottom:1px solid #eee;}
+.ph h2{font-size:16px;font-weight:600;margin-bottom:8px;color:#111;}
+.srow{display:flex;gap:8px;}
+.srow input{flex:1;}
+.sc{flex:1;overflow-y:auto;padding:12px 14px;}
+.st{font-size:11px;font-weight:600;color:#888;margin:10px 0 6px;text-transform:uppercase;letter-spacing:0.5px;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.chip{background:#f5f5f5;border:1px solid #eee;border-radius:20px;padding:5px 12px;font-size:13px;color:#333;cursor:pointer;}
+.urow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0;cursor:pointer;}
+.uav{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+.un{font-size:14px;font-weight:600;color:#111;}
+.uh{font-size:12px;color:#888;}
+.ufb{margin-left:auto;padding:5px 12px;border:1px solid #E24B4A;border-radius:14px;font-size:12px;color:#E24B4A;cursor:pointer;background:#fff;flex-shrink:0;}
+.ufb.on{background:#E24B4A;color:#fff;}
+
+/* UPLOAD */
+#scr-upload{background:#fff;}
+.up-body{flex:1;overflow-y:auto;padding:14px;}
+.dropz{border:2px dashed #ddd;border-radius:12px;padding:2rem 1rem;text-align:center;cursor:pointer;color:#888;}
+.dropz:hover{background:#f9f9f9;}
+.prevbox{margin:12px 0;border-radius:8px;overflow:hidden;max-height:200px;display:none;align-items:center;justify-content:center;background:#000;}
+.prevbox video,.prevbox img{max-height:200px;max-width:100%;object-fit:contain;}
+.upform{flex-direction:column;gap:12px;margin-top:12px;display:none;}
+.up-lbl{font-size:12px;color:#666;margin-bottom:3px;display:block;}
+.tadd{display:flex;gap:6px;}
+.tadd input{flex:1;}
+.bsm{padding:8px 12px;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;}
+.trow{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.tpill{background:#f5f5f5;border:1px solid #eee;border-radius:20px;padding:3px 10px;font-size:12px;color:#333;display:flex;align-items:center;gap:4px;}
+.tpill button{background:transparent;border:none;cursor:pointer;color:#888;font-size:14px;padding:0;line-height:1;}
+.prog{height:4px;background:#eee;border-radius:2px;overflow:hidden;}
+.prog-b{height:100%;background:#E24B4A;width:0%;transition:width 0.2s;}
+
+/* NOTIF */
+#scr-notif{background:#fff;}
+.nlist{flex:1;overflow-y:auto;}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f0f0f0;}
+.ni.unr{background:#fff5f5;}
+.nav2{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+.nt{flex:1;font-size:13px;color:#111;line-height:1.4;}
+.ntm{font-size:11px;color:#888;margin-top:1px;}
+.empty-c{flex:1;display:flex;align-items:center;justify-content:center;font-size:14px;color:#888;}
+
+/* PROFILE */
+#scr-profile{background:#fff;}
+.phd{padding:12px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;}
+.phd h2{font-size:16px;font-weight:600;flex:1;color:#111;}
+.pbody{flex:1;overflow-y:auto;}
+.pinfo{padding:14px;text-align:center;}
+.pav{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;margin:0 auto 10px;}
+.pname{font-size:18px;font-weight:700;color:#111;}
+.phan{font-size:13px;color:#888;margin-top:2px;}
+.pstats{display:flex;justify-content:center;gap:24px;margin:12px 0;}
+.psn{font-size:18px;font-weight:700;color:#111;}
+.psl{font-size:11px;color:#888;}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#eee;}
+.ptmb{aspect-ratio:9/16;background:#f5f5f5;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;}
+.ptmb video,.ptmb img{width:100%;height:100%;object-fit:cover;}
+.lo-btn{width:calc(100% - 28px);margin:10px 14px;padding:10px;border:1px solid #ddd;background:#fff;border-radius:8px;font-size:14px;color:#888;cursor:pointer;}
+
+/* USER PROFILE VIEW */
+#scr-userprofile{background:#fff;}
+
+/* PANEL */
+.pan-ov{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;}
+.pan{background:#fff;border-radius:16px 16px 0 0;padding:1rem;width:390px;max-width:100%;}
+.pan h3{font-size:15px;font-weight:600;margin-bottom:10px;color:#111;}
+.cl-inn{max-height:200px;overflow-y:auto;}
+.ci{display:flex;gap:8px;margin-bottom:10px;}
+.cav{width:28px;height:28px;border-radius:50%;background:#eee;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#888;flex-shrink:0;}
+.cn{font-size:12px;font-weight:600;color:#111;}
+.ct{font-size:13px;color:#666;margin-top:1px;}
+.cinr{display:flex;gap:8px;border-top:1px solid #eee;padding-top:10px;margin-top:6px;}
+.cinr input{flex:1;}
+.csnd{padding:8px 14px;background:#E24B4A;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;}
+.cp{width:100%;margin-top:8px;padding:9px;background:#fff;border:1px solid #eee;border-radius:8px;font-size:13px;cursor:pointer;color:#666;}
+.lp{text-align:center;padding:0.75rem;font-size:13px;color:#666;}
+.lp button{color:#E24B4A;background:transparent;border:none;cursor:pointer;font-size:13px;text-decoration:underline;}
+
+/* BOT */
+#scr-bot{background:#fff;}
+.bot-head{padding:12px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;}
+.bot-av{width:36px;height:36px;border-radius:50%;background:#E24B4A;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.bot-name{font-size:15px;font-weight:600;color:#111;}
+.bot-status{font-size:11px;color:#3B8B00;}
+.bot-msgs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+.bmsg{max-width:80%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.5;white-space:pre-line;}
+.bmsg.bot{background:#f5f5f5;color:#111;align-self:flex-start;border-bottom-left-radius:4px;}
+.bmsg.user{background:#E24B4A;color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
+.bot-inp{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee;}
+.bot-inp input{flex:1;}
+.bot-send{padding:9px 14px;background:#E24B4A;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;}
+.quick-btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+.qbtn{padding:5px 10px;background:#fff;border:1px solid #ddd;border-radius:14px;font-size:12px;cursor:pointer;color:#333;}
+</style>
+</head>
+<body>
+
+<div id="tut-overlay">
+  <div class="tut-box">
+    <div id="tut0" class="tut-step on"><div class="tut-ic">👋</div><div class="tut-ttl">Ласкаво просимо до VibeClip!</div><div class="tut-txt">Платформа для коротких відео. Завантажуй, дивись і ділись!</div></div>
+    <div id="tut1" class="tut-step"><div class="tut-ic">📱</div><div class="tut-ttl">Стрічка відео</div><div class="tut-txt">Гортай вгору-вниз. Натисни відео щоб поставити на паузу. Затисни — швидкість 2x!</div></div>
+    <div id="tut2" class="tut-step"><div class="tut-ic">➕</div><div class="tut-ttl">Публікуй відео</div><div class="tut-txt">Натисни "+" щоб завантажити відео або фото. Додай хештеги!</div></div>
+    <div id="tut3" class="tut-step"><div class="tut-ic">🔍</div><div class="tut-ttl">Пошук</div><div class="tut-txt">Шукай авторів та хештеги. Натисни на аватар — переглянь профіль!</div></div>
+    <div id="tut4" class="tut-step"><div class="tut-ic">🤖</div><div class="tut-ttl">Підтримка 24/7</div><div class="tut-txt">Бот-помічник завжди готовий допомогти. Знайди його у профілі.</div></div>
+    <div class="tut-dots"><div class="tdot on" id="td0"></div><div class="tdot" id="td1"></div><div class="tdot" id="td2"></div><div class="tdot" id="td3"></div><div class="tdot" id="td4"></div></div>
+    <div class="tut-btns">
+      <button class="btn-g" id="tut-back" onclick="tutNav(-1)" style="display:none;">← Назад</button>
+      <button class="btn-r" id="tut-next" onclick="tutNav(1)">Далі →</button>
+    </div>
+    <button class="btn-skip" onclick="closeTut()">Пропустити</button>
+  </div>
+</div>
+
+<div id="app">
+  <!-- AUTH -->
+  <div id="scr-auth" class="scr on">
+    <div class="auth-wrap">
+      <div class="logo">VibeClip</div>
+      <div class="logo-s">Завантажуй. Дивись. Ділись.</div>
+      <div class="atabs">
+        <button class="atab on" onclick="aTab('in')">Вхід</button>
+        <button class="atab" onclick="aTab('up')">Реєстрація</button>
+      </div>
+      <div id="af-in" class="aform">
+        <div class="fw"><label class="flbl">Email або нікнейм</label><input type="text" id="lu" placeholder="email або @nickname"></div>
+        <div class="fw"><label class="flbl">Пароль</label><input type="password" id="lp" placeholder="••••••••"></div>
+        <div class="aerr" id="lerr"></div>
+        <button class="btn-full" onclick="doLogin()">Увійти</button>
+        <div class="asep">або</div>
+        <button class="btn-ghost" onclick="guestMode()">Переглядати без входу</button>
+      </div>
+      <div id="af-up" class="aform" style="display:none;">
+        <div class="fw"><label class="flbl">Ім'я</label><input type="text" id="rn" placeholder="Твоє ім'я"></div>
+        <div class="fw"><label class="flbl">Нікнейм</label><input type="text" id="rh" placeholder="@nickname"></div>
+        <div class="fw"><label class="flbl">Email (Gmail)</label><input type="email" id="re" placeholder="yourname@gmail.com"><span class="pw-hint">На цей email прийде код підтвердження</span></div>
+        <div class="fw"><label class="flbl">Пароль</label><input type="password" id="rp" placeholder="мін. 8 символів"><span class="pw-hint">8–18 символів, містить літери та цифри</span></div>
+        <div class="aerr" id="rerr"></div>
+        <button class="btn-full" onclick="doReg()">Надіслати код підтвердження</button>
+        <div class="asep">або</div>
+        <button class="btn-ghost" onclick="guestMode()">Переглядати без входу</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERIFY -->
+  <div id="scr-verify" class="scr" style="padding:2rem 1.5rem;">
+    <div style="font-size:44px;text-align:center;margin-bottom:12px;">📧</div>
+    <div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:6px;color:#111;">Перевір пошту</div>
+    <div style="font-size:13px;color:#666;text-align:center;margin-bottom:1rem;line-height:1.5;">Ми надіслали 6-значний код на <b id="v-email"></b></div>
+    <div class="fake-mail">
+      <div class="fm-from">Від: noreply@vibeclip.app</div>
+      <div class="fm-subj">Твій код підтвердження VibeClip</div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;">Код дійсний 10 хвилин:</div>
+      <div class="fm-code" id="v-code-show">— — — — — —</div>
+    </div>
+    <div class="code-row">
+      <input class="code-inp" maxlength="1" id="c0" oninput="codeInp(0)" onkeydown="codeBk(0,event)">
+      <input class="code-inp" maxlength="1" id="c1" oninput="codeInp(1)" onkeydown="codeBk(1,event)">
+      <input class="code-inp" maxlength="1" id="c2" oninput="codeInp(2)" onkeydown="codeBk(2,event)">
+      <input class="code-inp" maxlength="1" id="c3" oninput="codeInp(3)" onkeydown="codeBk(3,event)">
+      <input class="code-inp" maxlength="1" id="c4" oninput="codeInp(4)" onkeydown="codeBk(4,event)">
+      <input class="code-inp" maxlength="1" id="c5" oninput="codeInp(5)" onkeydown="codeBk(5,event)">
+    </div>
+    <div class="verr" id="verr"></div>
+    <button class="btn-full" onclick="verifyCode()" style="margin-bottom:8px;">Підтвердити</button>
+    <button class="resend-btn" onclick="resendCode()">Надіслати код ще раз</button>
+    <button class="btn-ghost" onclick="backToAuth()">← Назад</button>
+  </div>
+
+  <!-- FEED -->
+  <div id="scr-feed" class="scr">
+    <div class="feed-bar">
+      <div class="feed-logo">VibeClip</div>
+      <div class="ftabs">
+        <button class="ftab on" onclick="fMode('all',this)">Для тебе</button>
+        <button class="ftab" onclick="fMode('fol',this)">Підписки</button>
+      </div>
+    </div>
+    <div class="fscroll" id="fscroll"></div>
+  </div>
+
+  <!-- SEARCH -->
+  <div id="scr-search" class="scr">
+    <div class="ph"><h2>Пошук</h2><div class="srow"><input type="text" id="sq" placeholder="@нікнейм або #хештег..." oninput="doSearch()"></div></div>
+    <div class="sc" id="sc"></div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div id="scr-upload" class="scr">
+    <div class="ph"><h2>Нове відео / фото</h2></div>
+    <div class="up-body">
+      <div class="dropz" onclick="document.getElementById('finp').click()">
+        <div style="font-size:32px;margin-bottom:8px;">⬆️</div>
+        <div style="font-size:14px;">Натисни щоб обрати файл</div>
+        <div style="font-size:12px;color:#aaa;margin-top:4px;">відео або фото</div>
+      </div>
+      <input type="file" id="finp" accept="video/*,image/*" style="display:none;" onchange="onFile(this)">
+      <div class="prevbox" id="prevbox"></div>
+      <div id="upform" class="upform">
+        <div class="fw"><label class="up-lbl">Опис</label><textarea id="udesc" rows="2" placeholder="Розкажи про відео..." style="resize:none;"></textarea></div>
+        <div class="fw">
+          <label class="up-lbl">Хештеги (до 8)</label>
+          <div class="tadd"><input type="text" id="tinp" placeholder="#хештег" onkeydown="if(event.key==='Enter')addTag()"><button class="bsm" onclick="addTag()">+ додати</button></div>
+          <div class="trow" id="trow"></div>
+        </div>
+        <div class="prog" id="prog" style="display:none;"><div class="prog-b" id="prog-b"></div></div>
+        <button class="btn-full" onclick="doUpload()">Опублікувати</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIF -->
+  <div id="scr-notif" class="scr">
+    <div class="ph"><h2>Сповіщення</h2></div>
+    <div id="nlist" class="nlist"></div>
+  </div>
+
+  <!-- MY PROFILE -->
+  <div id="scr-profile" class="scr">
+    <div class="phd"><h2 id="ptitle">Профіль</h2></div>
+    <div class="pbody" id="pbody"></div>
+  </div>
+
+  <!-- USER PROFILE VIEW -->
+  <div id="scr-userprofile" class="scr">
+    <div class="phd">
+      <button onclick="goBack()" style="background:transparent;border:none;cursor:pointer;font-size:20px;margin-right:8px;color:#111;">←</button>
+      <h2 id="up-title">Профіль</h2>
+    </div>
+    <div class="pbody" id="up-body"></div>
+  </div>
+
+  <!-- BOT -->
+  <div id="scr-bot" class="scr">
+    <div class="bot-head">
+      <div class="bot-av">🤖</div>
+      <div><div class="bot-name">VibeClip Підтримка</div><div class="bot-status">● Онлайн</div></div>
+      <button onclick="go('profile')" style="margin-left:auto;background:transparent;border:none;cursor:pointer;font-size:20px;color:#888;">✕</button>
+    </div>
+    <div class="bot-msgs" id="bot-msgs"></div>
+    <div class="bot-inp">
+      <input type="text" id="bot-inp" placeholder="Напиши питання..." onkeydown="if(event.key==='Enter')sendBot()">
+      <button class="bot-send" onclick="sendBot()">↑</button>
+    </div>
+  </div>
+
+  <div id="bnav">
+    <button class="bn on" id="bn-feed" onclick="go('feed')"><div class="bn-ic"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span class="bn-lbl">Стрічка</span></button>
+    <button class="bn" id="bn-search" onclick="go('search')"><div class="bn-ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><span class="bn-lbl">Пошук</span></button>
+    <button class="bn" id="bn-upload" onclick="go('upload')"><div class="bn-ic"><div class="plus-ic"><svg viewBox="0 0 24 24" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div></div><span class="bn-lbl">Додати</span></button>
+    <button class="bn" id="bn-notif" onclick="go('notif')"><div class="bn-ic"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><div class="ndot" id="ndot"></div></div><span class="bn-lbl">Сповіщення</span></button>
+    <button class="bn" id="bn-profile" onclick="go('profile')"><div class="bn-ic"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><span class="bn-lbl">Профіль</span></button>
+  </div>
+</div>
+<div id="panel-area"></div>
+
+<script>
+var user=null,isGuest=false,accounts=[],posts=[],notifs=[],liked={},following={},utags=[],fileData=null,fileType=null,fmode='all',activeCid=null,pendingAcc=null,verCode=null,tutStep=0,botMsgs=[],searchT=null,prevScreen=null;
+var COLORS=['#E24B4A','#534AB7','#0F6E56','#BA7517','#185FA5','#993556'];
+var BOT_KB={
+  'пароль':['Пароль має бути 8–18 символів і містити і літери і цифри.','Якщо забув пароль — функція відновлення буде додана незабаром.'],
+  'верифікац':['Після реєстрації на Gmail прийде 6-значний код. Введи його щоб активувати акаунт.','Код дійсний 10 хвилин. Якщо не прийшов — натисни "Надіслати ще раз".'],
+  'відео':['Завантажуй відео і фото через кнопку "+". Натисни відео щоб поставити паузу, затисни для 2x швидкості!','Підтримуються формати MP4, MOV для відео та JPG, PNG для фото.'],
+  'акаунт':['На один Gmail — один акаунт. Для видалення: support@vibeclip.app'],
+  'хештег':['Хештеги допомагають іншим знайти твоє відео. Додавай до 8 тегів.'],
+  'підписк':['Підписуйся на авторів прямо зі стрічки або в пошуку.'],
+  'лайк':['Лайки доступні тільки після входу в акаунт.'],
+  'швидкість':['Затисни відео у стрічці щоб включити 2x швидкість. Відпусти — повернеться до звичайної.'],
+  'default':['Привіт! Я бот підтримки VibeClip. Запитай про: пароль, верифікацію, відео, акаунт, хештеги.','Не знайшов відповіді? Пиши: support@vibeclip.app']
+};
+
+// TUTORIAL
+function tutNav(dir){
+  document.getElementById('td'+tutStep).classList.remove('on');
+  document.getElementById('tut'+tutStep).classList.remove('on');
+  tutStep=Math.max(0,Math.min(4,tutStep+dir));
+  document.getElementById('td'+tutStep).classList.add('on');
+  document.getElementById('tut'+tutStep).classList.add('on');
+  document.getElementById('tut-back').style.display=tutStep>0?'block':'none';
+  var nb=document.getElementById('tut-next');
+  if(tutStep>=4){nb.textContent='Почати! 🚀';nb.onclick=closeTut;}
+  else{nb.textContent='Далі →';nb.onclick=function(){tutNav(1);};}
+}
+function closeTut(){document.getElementById('tut-overlay').style.display='none';}
+
+// VALIDATION
+function validatePw(pw){
+  if(pw.length<8||pw.length>18)return'Пароль 8–18 символів';
+  if(!/[a-zA-Zа-яА-ЯіІїЇєЄ]/.test(pw))return'Має містити хоча б одну літеру';
+  if(!/[0-9]/.test(pw))return'Має містити хоча б одну цифру';
+  return null;
+}
+function validateEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);}
+
+// AUTH
+function aTab(t){
+  document.querySelectorAll('.atab').forEach(function(b,i){b.classList.toggle('on',(t==='in'&&i===0)||(t==='up'&&i===1));});
+  document.getElementById('af-in').style.display=t==='in'?'flex':'none';
+  document.getElementById('af-up').style.display=t==='up'?'flex':'none';
+  document.getElementById('lerr').textContent='';document.getElementById('rerr').textContent='';
+}
+function doLogin(){
+  var u=document.getElementById('lu').value.trim(),p=document.getElementById('lp').value;
+  if(!u||!p){document.getElementById('lerr').textContent='Заповніть усі поля';return;}
+  var acc=accounts.find(function(a){return a.pass===p&&(a.handle===u||a.handle==='@'+u||a.email===u);});
+  if(!acc){document.getElementById('lerr').textContent='Невірний email/нікнейм або пароль';return;}
+  loginOk(acc);
+}
+function doReg(){
+  var n=document.getElementById('rn').value.trim(),h=document.getElementById('rh').value.trim(),
+    e=document.getElementById('re').value.trim(),p=document.getElementById('rp').value;
+  if(!n||!h||!e||!p){document.getElementById('rerr').textContent='Заповніть усі поля';return;}
+  if(!validateEmail(e)){document.getElementById('rerr').textContent='Невірний формат email';return;}
+  if(accounts.find(function(a){return a.email===e;})){document.getElementById('rerr').textContent='Цей email вже використовується';return;}
+  var pwErr=validatePw(p);if(pwErr){document.getElementById('rerr').textContent=pwErr;return;}
+  var handle=h.startsWith('@')?h:'@'+h;
+  if(accounts.find(function(a){return a.handle===handle;})){document.getElementById('rerr').textContent='Цей нікнейм вже зайнятий';return;}
+  verCode=String(Math.floor(100000+Math.random()*900000));
+  pendingAcc={name:n,handle:handle,email:e,pass:p,color:COLORS[accounts.length%COLORS.length]};
+  showVerify(e);
+}
+function showVerify(email){
+  document.getElementById('scr-auth').classList.remove('on');
+  document.getElementById('scr-verify').classList.add('on');
+  document.getElementById('v-email').textContent=email;
+  document.getElementById('v-code-show').textContent=verCode.split('').join(' ');
+  document.getElementById('verr').textContent='';
+  for(var i=0;i<6;i++)document.getElementById('c'+i).value='';
+  setTimeout(function(){document.getElementById('c0').focus();},100);
+}
+function codeInp(i){if(document.getElementById('c'+i).value&&i<5)document.getElementById('c'+(i+1)).focus();}
+function codeBk(i,e){if(e.key==='Backspace'&&!document.getElementById('c'+i).value&&i>0)document.getElementById('c'+(i-1)).focus();}
+function verifyCode(){
+  var entered='';for(var i=0;i<6;i++)entered+=document.getElementById('c'+i).value;
+  if(entered.length<6){document.getElementById('verr').textContent='Введи всі 6 цифр';return;}
+  if(entered!==verCode){document.getElementById('verr').textContent='Невірний код. Спробуй ще раз';return;}
+  accounts.push(pendingAcc);
+  document.getElementById('scr-verify').classList.remove('on');
+  loginOk(pendingAcc);
+}
+function resendCode(){
+  verCode=String(Math.floor(100000+Math.random()*900000));
+  document.getElementById('v-code-show').textContent=verCode.split('').join(' ');
+  document.getElementById('verr').textContent='✅ Новий код надіслано!';
+  setTimeout(function(){document.getElementById('verr').textContent='';},2500);
+}
+function backToAuth(){document.getElementById('scr-verify').classList.remove('on');document.getElementById('scr-auth').classList.add('on');}
+function guestMode(){isGuest=true;user=null;authToMain();}
+function loginOk(acc){user=acc;isGuest=false;authToMain();}
+function authToMain(){
+  ['scr-auth','scr-verify'].forEach(function(s){document.getElementById(s).classList.remove('on');});
+  document.getElementById('bnav').classList.add('on');
+  go('feed');
+}
+
+// NAVIGATION
+function closePan(){document.getElementById('panel-area').innerHTML='';}
+function reqLogin(msg){
+  document.getElementById('panel-area').innerHTML='<div class="pan-ov" onclick="if(event.target===this)closePan()"><div class="pan"><div class="lp"><div style="font-size:15px;font-weight:700;color:#111;margin-bottom:6px;">'+(msg||'Потрібен акаунт')+'</div><div style="margin-bottom:12px;font-size:13px;color:#666;">Увійди або зареєструйся</div><button class="btn-full" style="margin-bottom:8px;" onclick="gotoAuth()">Увійти / Зареєструватись</button><button class="cp" onclick="closePan()">Скасувати</button></div></div></div>';
+}
+function gotoAuth(){
+  closePan();stopAllVideos();
+  document.getElementById('bnav').classList.remove('on');
+  ['feed','search','upload','notif','profile','bot','userprofile'].forEach(function(t){document.getElementById('scr-'+t).classList.remove('on');});
+  document.getElementById('scr-auth').classList.add('on');
+  isGuest=false;
+}
+var allScreens=['feed','search','upload','notif','profile','bot','userprofile'];
+function go(tab){
+  if(isGuest&&(tab==='upload'||tab==='notif')){reqLogin(tab==='upload'?'Щоб публікувати відео потрібен акаунт':'Сповіщення доступні після входу');return;}
+  stopAllVideos();
+  prevScreen=document.querySelector('.scr.on');
+  allScreens.forEach(function(t){
+    document.getElementById('scr-'+t).classList.toggle('on',t===tab);
+    var b=document.getElementById('bn-'+t);if(b)b.classList.toggle('on',t===tab);
+  });
+  closePan();
+  if(tab==='feed')renderFeed();
+  if(tab==='search')renderSearch('');
+  if(tab==='profile')renderProfile(user);
+  if(tab==='notif')renderNotifs();
+  if(tab==='bot')initBot();
+  if(tab==='upload'){fileData=null;fileType=null;utags=[];document.getElementById('prevbox').style.display='none';document.getElementById('upform').style.display='none';document.getElementById('finp').value='';try{document.getElementById('udesc').value='';}catch(ex){}document.getElementById('trow').innerHTML='';document.getElementById('prog').style.display='none';}
+}
+function goBack(){
+  stopAllVideos();
+  document.getElementById('scr-userprofile').classList.remove('on');
+  document.getElementById('scr-feed').classList.add('on');
+  document.getElementById('bn-feed').classList.add('on');
+  renderFeed();
+}
+
+// VIDEO PLAYER
+function stopAllVideos(){
+  document.querySelectorAll('video').forEach(function(v){v.pause();v.playbackRate=1;});
+}
+
+function setupVideoCard(card,post){
+  var media=card.querySelector('.vmedia');
+  var vid=card.querySelector('video');
+  var playOv=card.querySelector('.play-overlay');
+  var speedBadge=card.querySelector('.speed-badge');
+  if(!vid)return;
+
+  var isPaused=false;
+  var holdTimer=null;
+  var isHolding=false;
+
+  function togglePlay(){
+    if(vid.paused){vid.play().catch(function(){});isPaused=false;}
+    else{vid.pause();isPaused=true;}
+    playOv.classList.add('show');
+    setTimeout(function(){playOv.classList.remove('show');},600);
+  }
+
+  function startHold(){
+    holdTimer=setTimeout(function(){
+      isHolding=true;
+      vid.playbackRate=2;
+      speedBadge.classList.add('show');
+    },300);
+  }
+  function endHold(){
+    clearTimeout(holdTimer);
+    if(isHolding){
+      isHolding=false;
+      vid.playbackRate=1;
+      speedBadge.classList.remove('show');
+    } else {
+      togglePlay();
+    }
+  }
+
+  // Mouse events
+  media.addEventListener('mousedown',function(e){e.preventDefault();startHold();});
+  media.addEventListener('mouseup',function(e){e.preventDefault();endHold();});
+  media.addEventListener('mouseleave',function(){clearTimeout(holdTimer);if(isHolding){isHolding=false;vid.playbackRate=1;speedBadge.classList.remove('show');}});
+
+  // Touch events
+  media.addEventListener('touchstart',function(e){e.preventDefault();startHold();},{passive:false});
+  media.addEventListener('touchend',function(e){e.preventDefault();endHold();},{passive:false});
+
+  // Intersection observer for autoplay
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        if(!isPaused)vid.play().catch(function(){});
+      } else {
+        vid.pause();
+        vid.playbackRate=1;
+        speedBadge.classList.remove('show');
+        isHolding=false;
+      }
+    });
+  },{threshold:0.7,root:document.getElementById('fscroll')});
+  obs.observe(card);
+}
+
+// FEED
+function fMode(m,btn){fmode=m;document.querySelectorAll('.ftab').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');renderFeed();}
+
+function renderFeed(){
+  var scroll=document.getElementById('fscroll');
+  var fp=posts;
+  if(fmode==='fol'&&!isGuest)fp=posts.filter(function(p){return following[p.user];});
+  if(!fp.length){
+    scroll.innerHTML='<div class="empty-f"><div style="font-size:40px;opacity:0.3;">▶</div><div style="font-size:14px;">'+(fmode==='fol'&&!isGuest?'Підпишись на когось!':'Поки немає відео. Додай перше!')+'</div></div>';
+    return;
+  }
+  scroll.innerHTML='';
+  fp.forEach(function(p){
+    var acc=accounts.find(function(a){return a.handle===p.user;})||{color:'#E24B4A',name:p.name||'?'};
+    var isMe=user&&p.user===user.handle;
+    var isF=following[p.user];
+    var card=document.createElement('div');
+    card.className='vcard';
+    var mediaHTML='';
+    if(p.fileType==='video'){
+      mediaHTML='<video src="'+p.fileData+'" loop playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>';
+    } else if(p.fileType==='image'){
+      mediaHTML='<img src="'+p.fileData+'" style="width:100%;height:100%;object-fit:cover;display:block;" draggable="false">';
+    }
+    card.innerHTML=
+      '<div class="vmedia">'+mediaHTML+
+        '<div class="play-overlay"><div class="play-ic"><svg viewBox="0 0 24 24" style="margin-left:3px;"><polygon points="5,3 19,12 5,21"/></svg></div></div>'+
+        '<div class="speed-badge">2x ⚡</div>'+
+      '</div>'+
+      '<div class="vgrad"></div>'+
+      '<div class="vinfo">'+
+        '<div class="vur">'+
+          '<div class="vav" style="background:'+acc.color+';cursor:pointer;" onclick="viewUserProfile(\''+p.user+'\')">'+((acc.name||'?')[0].toUpperCase())+'</div>'+
+          '<div class="vuser" style="cursor:pointer;" onclick="viewUserProfile(\''+p.user+'\')">'+p.user+'</div>'+
+          (!isMe?'<button class="vfbtn '+(isF?'on':'')+'" onclick="tFollow(\''+p.user+'\',this)">'+(isF?'Підписаний':'+ Підписатись')+'</button>':'')+
+        '</div>'+
+        '<div class="vdesc">'+(p.desc||'')+'</div>'+
+        '<div class="vtags">'+((p.tags||[]).map(function(t){return '<button class="vtag" onclick="searchByTag(\''+t+'\')">'+t+'</button>';}).join(''))+'</div>'+
+      '</div>'+
+      '<div class="vact">'+
+        '<button class="vbtn '+(liked[p.id]?'liked':'')+'" onclick="tryLike('+p.id+',this)">'+
+          '<div class="vic"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>'+
+          '<span id="lc-'+p.id+'">'+p.likes+'</span>'+
+        '</button>'+
+        '<button class="vbtn" onclick="openComments('+p.id+')">'+
+          '<div class="vic"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>'+
+          '<span id="cc-'+p.id+'">'+p.comments.length+'</span>'+
+        '</button>'+
+      '</div>';
+    scroll.appendChild(card);
+    setupVideoCard(card,p);
+  });
+}
+
+function tryLike(id,btn){
+  if(isGuest){reqLogin('Щоб лайкати потрібен акаунт');return;}
+  var p=posts.find(function(x){return x.id===id;});if(!p)return;
+  if(liked[id]){liked[id]=false;p.likes--;}else{liked[id]=true;p.likes++;if(p.user!==user.handle)addNotif(p.user,'like',p);}
+  btn.classList.toggle('liked',!!liked[id]);
+  document.getElementById('lc-'+id).textContent=p.likes;
+}
+function tFollow(handle,btn){
+  if(isGuest){reqLogin('Щоб підписуватись потрібен акаунт');return;}
+  following[handle]=!following[handle];
+  btn.textContent=following[handle]?'Підписаний':'+ Підписатись';
+  btn.classList.toggle('on',!!following[handle]);
+  if(following[handle])addNotif(handle,'follow',null);
+}
+function addNotif(h,type,post){
+  if(!user)return;
+  notifs.unshift({id:Date.now(),from:user.handle,fromName:user.name,type:type,post:post,ts:Date.now(),read:false});
+  document.getElementById('ndot').classList.add('on');
+}
+
+// VIEW USER PROFILE
+function viewUserProfile(handle){
+  var acc=accounts.find(function(a){return a.handle===handle;});
+  if(!acc)return;
+  stopAllVideos();
+  allScreens.forEach(function(t){document.getElementById('scr-'+t).classList.remove('on');});
+  document.getElementById('scr-userprofile').classList.add('on');
+  document.getElementById('up-title').textContent=acc.name;
+  var myPosts=posts.filter(function(p){return p.user===acc.handle;});
+  var totalLikes=myPosts.reduce(function(s,p){return s+p.likes;},0);
+  var isF=following[acc.handle];
+  document.getElementById('up-body').innerHTML=
+    '<div class="pinfo">'+
+      '<div class="pav" style="background:'+(acc.color||'#E24B4A')+'">'+acc.name[0].toUpperCase()+'</div>'+
+      '<div class="pname">'+acc.name+'</div><div class="phan">'+acc.handle+'</div>'+
+      '<div class="pstats">'+
+        '<div><div class="psn">'+myPosts.length+'</div><div class="psl">Відео</div></div>'+
+        '<div><div class="psn">'+totalLikes+'</div><div class="psl">Лайки</div></div>'+
+      '</div>'+
+      '<button class="btn-full" style="width:auto;padding:9px 24px;" onclick="tFollowProfile(\''+acc.handle+'\',this)">'+(isF?'✓ Підписаний':'+ Підписатись')+'</button>'+
+    '</div>'+
+    '<div class="pgrid">'+(myPosts.length?myPosts.map(function(p){
+      return '<div class="ptmb">'+(p.fileType==='video'?'<video src="'+p.fileData+'" muted style="width:100%;height:100%;object-fit:cover;">':p.fileType==='image'?'<img src="'+p.fileData+'" style="width:100%;height:100%;object-fit:cover;">':'')+'</div>';
+    }).join(''):'<div style="grid-column:1/-1;text-align:center;padding:2rem;font-size:13px;color:#888;">Ще немає відео</div>')+'</div>';
+}
+function tFollowProfile(handle,btn){
+  if(isGuest){reqLogin('Підписки доступні після входу');return;}
+  following[handle]=!following[handle];
+  btn.textContent=following[handle]?'✓ Підписаний':'+ Підписатись';
+  if(following[handle])addNotif(handle,'follow',null);
+}
+
+// NOTIFICATIONS
+function renderNotifs(){
+  document.getElementById('ndot').classList.remove('on');
+  notifs.forEach(function(n){n.read=true;});
+  var list=document.getElementById('nlist');
+  if(!notifs.length){list.innerHTML='<div class="empty-c">Поки немає сповіщень</div>';return;}
+  list.innerHTML=notifs.map(function(n){
+    var acc=accounts.find(function(a){return a.handle===n.from;})||{color:'#E24B4A',name:n.fromName||'?'};
+    var txt=n.type==='like'?n.fromName+' вподобав ваше відео':n.type==='follow'?n.fromName+' підписався на вас':n.fromName+' прокоментував ваше відео';
+    var ago=Math.round((Date.now()-n.ts)/60000);
+    return '<div class="ni '+(n.read?'':'unr')+'"><div class="nav2" style="background:'+(acc.color||'#E24B4A')+'">'+n.fromName[0]+'</div><div class="nt">'+txt+'<div class="ntm">'+(ago<1?'щойно':ago<60?ago+'хв тому':Math.round(ago/60)+'год тому')+'</div></div></div>';
+  }).join('');
+}
+
+// SEARCH
+function renderSearch(q){
+  var cont=document.getElementById('sc');
+  if(!q){
+    var allTags=[...new Set(posts.flatMap(function(p){return p.tags||[];}))].slice(0,10);
+    cont.innerHTML=(allTags.length?'<div class="st">Хештеги</div><div class="chips" style="margin-bottom:10px;">'+allTags.map(function(t){return '<div class="chip" onclick="searchByTag(\''+t+'\')">'+t+'</div>';}).join('')+'</div>':'')+
+    '<div class="st">Користувачі</div>'+
+    (accounts.filter(function(a){return !user||a.handle!==user.handle;}).map(function(a){
+      return '<div class="urow" onclick="viewUserProfile(\''+a.handle+'\')">'+
+        '<div class="uav" style="background:'+(a.color||'#E24B4A')+'">'+a.name[0]+'</div>'+
+        '<div style="flex:1;"><div class="un">'+a.name+'</div><div class="uh">'+a.handle+'</div></div>'+
+        '<button class="ufb '+(following[a.handle]?'on':'')+'" onclick="event.stopPropagation();tFollowS(\''+a.handle+'\',this)">'+(following[a.handle]?'Підписаний':'Підписатись')+'</button>'+
+      '</div>';
+    }).join('')||'<div style="font-size:13px;color:#888;padding:10px 0;">Поки немає інших користувачів</div>');
+    return;
+  }
+  var ql=q.toLowerCase();
+  var ur=accounts.filter(function(a){return (!user||a.handle!==user.handle)&&(a.handle.toLowerCase().includes(ql)||a.name.toLowerCase().includes(ql));});
+  var pr=posts.filter(function(p){return (p.desc||'').toLowerCase().includes(ql)||(p.tags||[]).some(function(t){return t.toLowerCase().includes(ql);});});
+  cont.innerHTML=
+    (ur.length?'<div class="st">Користувачі</div>'+ur.map(function(a){return '<div class="urow" onclick="viewUserProfile(\''+a.handle+'\')"><div class="uav" style="background:'+(a.color||'#E24B4A')+'">'+a.name[0]+'</div><div style="flex:1;"><div class="un">'+a.name+'</div><div class="uh">'+a.handle+'</div></div><button class="ufb '+(following[a.handle]?'on':'')+'" onclick="event.stopPropagation();tFollowS(\''+a.handle+'\',this)">'+(following[a.handle]?'Підписаний':'Підписатись')+'</button></div>';}).join(''):'')+
+    (pr.length?'<div class="st">Відео</div>'+pr.map(function(p){return '<div class="urow"><div style="width:44px;height:60px;border-radius:6px;background:#f5f5f5;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">'+(p.fileType==='video'?'<video src="'+p.fileData+'" muted style="width:100%;height:100%;object-fit:cover;">':p.fileType==='image'?'<img src="'+p.fileData+'" style="width:100%;height:100%;object-fit:cover;">':'')+'</div><div style="flex:1;overflow:hidden;"><div style="font-size:12px;color:#888;">'+p.user+'</div><div style="font-size:13px;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(p.desc||'')+'</div></div></div>';}).join(''):'')||
+    '<div style="text-align:center;padding:2rem;font-size:14px;color:#888;">Нічого не знайдено</div>';
+}
+function doSearch(){clearTimeout(searchT);searchT=setTimeout(function(){renderSearch(document.getElementById('sq').value.trim());},300);}
+function searchByTag(tag){go('search');setTimeout(function(){document.getElementById('sq').value=tag;renderSearch(tag);},50);}
+function tFollowS(handle,btn){
+  if(isGuest){reqLogin('Підписки доступні після входу');return;}
+  following[handle]=!following[handle];btn.textContent=following[handle]?'Підписаний':'Підписатись';btn.classList.toggle('on',!!following[handle]);
+  if(following[handle])addNotif(handle,'follow',null);
+}
+
+// MY PROFILE
+function renderProfile(acc){
+  if(!acc){
+    document.getElementById('ptitle').textContent='Профіль';
+    document.getElementById('pbody').innerHTML='<div class="empty-c" style="flex-direction:column;gap:12px;padding:2rem;text-align:center;"><div style="font-size:14px;color:#111;">Ти переглядаєш як гість</div><button class="btn-full" style="max-width:200px;" onclick="gotoAuth()">Увійти / Зареєструватись</button></div>';
+    return;
+  }
+  document.getElementById('ptitle').textContent='Мій профіль';
+  var myPosts=posts.filter(function(p){return p.user===acc.handle;});
+  var totalLikes=myPosts.reduce(function(s,p){return s+p.likes;},0);
+  document.getElementById('pbody').innerHTML=
+    '<div class="pinfo">'+
+      '<div class="pav" style="background:'+(acc.color||'#E24B4A')+'">'+acc.name[0].toUpperCase()+'</div>'+
+      '<div class="pname">'+acc.name+'</div><div class="phan">'+acc.handle+'</div>'+
+      '<div class="pstats">'+
+        '<div><div class="psn">'+myPosts.length+'</div><div class="psl">Відео</div></div>'+
+        '<div><div class="psn">'+Object.values(following).filter(Boolean).length+'</div><div class="psl">Підписки</div></div>'+
+        '<div><div class="psn">'+totalLikes+'</div><div class="psl">Лайки</div></div>'+
+      '</div>'+
+      '<button class="btn-full" style="width:auto;padding:9px 20px;margin-bottom:8px;" onclick="go(\'bot\')">🤖 Служба підтримки</button>'+
+    '</div>'+
+    '<div class="pgrid">'+(myPosts.length?myPosts.map(function(p){return '<div class="ptmb">'+(p.fileType==='video'?'<video src="'+p.fileData+'" muted style="width:100%;height:100%;object-fit:cover;">':p.fileType==='image'?'<img src="'+p.fileData+'" style="width:100%;height:100%;object-fit:cover;">':'')+'</div>';}).join(''):'<div style="grid-column:1/-1;text-align:center;padding:2rem;font-size:13px;color:#888;">Ще немає відео</div>')+'</div>'+
+    '<button class="lo-btn" onclick="logout()">Вийти з акаунту</button>';
+}
+
+// COMMENTS
+function openComments(id){
+  activeCid=id;
+  var p=posts.find(function(x){return x.id===id;});
+  var canC=!isGuest&&user;
+  document.getElementById('panel-area').innerHTML=
+    '<div class="pan-ov" onclick="if(event.target===this)closePan()">'+
+      '<div class="pan">'+
+        '<h3>Коментарі ('+p.comments.length+')</h3>'+
+        '<div class="cl-inn">'+
+          (p.comments.map(function(c){return '<div class="ci"><div class="cav">'+c.u+'</div><div><div class="cn">'+c.name+'</div><div class="ct">'+c.text+'</div></div></div>';}).join('')||'<div style="font-size:13px;color:#888;text-align:center;padding:10px 0;">Поки немає коментарів</div>')+
+        '</div>'+
+        (canC?'<div class="cinr"><input type="text" id="cinp" placeholder="Написати..."><button class="csnd" onclick="addComment()">OK</button></div>':'<div class="lp">Щоб коментувати — <button onclick="gotoAuth()">увійди</button></div>')+
+        '<button class="cp" onclick="closePan()">Закрити</button>'+
+      '</div>'+
+    '</div>';
+}
+function addComment(){
+  var inp=document.getElementById('cinp'),text=inp.value.trim();if(!text)return;
+  var p=posts.find(function(x){return x.id===activeCid;});
+  p.comments.push({u:user.name[0].toUpperCase(),name:user.handle,text:text});
+  document.getElementById('cc-'+activeCid).textContent=p.comments.length;
+  if(p.user!==user.handle)addNotif(p.user,'comment',p);
+  inp.value='';openComments(activeCid);
+}
+
+// UPLOAD
+function onFile(inp){
+  var file=inp.files[0];if(!file)return;
+  fileType=file.type.startsWith('video')?'video':'image';
+  var reader=new FileReader();
+  reader.onload=function(e){
+    fileData=e.target.result;
+    var pb=document.getElementById('prevbox');pb.style.display='flex';
+    pb.innerHTML=fileType==='video'?'<video src="'+fileData+'" controls style="max-height:200px;max-width:100%;"></video>':'<img src="'+fileData+'" style="max-height:200px;max-width:100%;object-fit:contain;">';
+    var uf=document.getElementById('upform');uf.style.display='flex';uf.style.flexDirection='column';uf.style.gap='12px';
+  };
+  reader.readAsDataURL(file);
+}
+function addTag(){
+  var inp=document.getElementById('tinp');var v=inp.value.trim();if(!v)return;
+  if(!v.startsWith('#'))v='#'+v;
+  if(utags.indexOf(v)>-1||utags.length>=8)return;
+  utags.push(v);
+  document.getElementById('trow').innerHTML=utags.map(function(t){return '<div class="tpill">'+t+'<button onclick="removeTag(\''+t+'\')">×</button></div>';}).join('');
+  inp.value='';
+}
+function removeTag(t){
+  utags=utags.filter(function(x){return x!==t;});
+  document.getElementById('trow').innerHTML=utags.map(function(t){return '<div class="tpill">'+t+'<button onclick="removeTag(\''+t+'\')">×</button></div>';}).join('');
+}
+function doUpload(){
+  if(!fileData){alert('Оберіть файл!');return;}
+  var desc=document.getElementById('udesc').value.trim();
+  var prog=document.getElementById('prog'),bar=document.getElementById('prog-b');
+  prog.style.display='block';bar.style.width='0%';
+  var w=0;
+  var iv=setInterval(function(){
+    w+=Math.random()*22;
+    if(w>=100){w=100;bar.style.width='100%';clearInterval(iv);
+      setTimeout(function(){
+        posts.unshift({id:Date.now(),user:user.handle,name:user.name,desc:desc,tags:utags.slice(),fileData:fileData,fileType:fileType,likes:0,comments:[],ts:Date.now()});
+        prog.style.display='none';go('feed');
+      },350);
+    }else bar.style.width=Math.min(w,95)+'%';
+  },180);
+}
+
+// BOT
+function initBot(){
+  if(botMsgs.length===0){
+    botMsgs=[{role:'bot',text:'Привіт! Я бот підтримки VibeClip 🤖\n\nОбери тему або напиши питання:'}];
+    renderBot();
+    setTimeout(function(){
+      var msgs=document.getElementById('bot-msgs');
+      if(msgs)msgs.innerHTML+='<div class="quick-btns"><button class="qbtn" onclick="quickBot(\'пароль\')">Пароль</button><button class="qbtn" onclick="quickBot(\'верифікація\')">Верифікація</button><button class="qbtn" onclick="quickBot(\'відео\')">Відео</button><button class="qbtn" onclick="quickBot(\'швидкість\')">2x швидкість</button><button class="qbtn" onclick="quickBot(\'акаунт\')">Акаунт</button></div>';
+    },100);
+  }else renderBot();
+}
+function renderBot(){
+  var msgs=document.getElementById('bot-msgs');if(!msgs)return;
+  msgs.innerHTML=botMsgs.map(function(m){return '<div class="bmsg '+m.role+'">'+m.text+'</div>';}).join('');
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function sendBot(){
+  var inp=document.getElementById('bot-inp');var text=inp.value.trim();if(!text)return;
+  botMsgs.push({role:'user',text:text});inp.value='';renderBot();
+  setTimeout(function(){
+    var tl=text.toLowerCase();
+    var resp=BOT_KB['default'][0];
+    for(var key in BOT_KB){if(key!=='default'&&tl.indexOf(key)>-1){var ans=BOT_KB[key];resp=ans[Math.floor(Math.random()*ans.length)];break;}}
+    botMsgs.push({role:'bot',text:resp});renderBot();
+  },600);
+}
+function quickBot(topic){
+  botMsgs.push({role:'user',text:topic});renderBot();
+  setTimeout(function(){
+    var answers=BOT_KB[topic]||BOT_KB['default'];
+    botMsgs.push({role:'bot',text:answers[0]});renderBot();
+  },500);
+}
+
+function logout(){
+  user=null;isGuest=false;botMsgs=[];stopAllVideos();
+  document.getElementById('bnav').classList.remove('on');
+  allScreens.forEach(function(t){document.getElementById('scr-'+t).classList.remove('on');});
+  document.getElementById('scr-auth').classList.add('on');
+  document.getElementById('lu').value='';document.getElementById('lp').value='';
+}
+</script>
+</body>
+</html>
